@@ -9,7 +9,6 @@ const handleFileUrl = (src) => {
     return path.join(__dirname, src)
 }
 
-const pageTitles = ['首页', '首页1', '首页2',]
 const setMPA = () => {
     const entry = {};
     const htmlWebpackPlugins = [];
@@ -25,7 +24,6 @@ const setMPA = () => {
             // 循环动态打包文件
             htmlWebpackPlugins.push(
                 new htmlInjectPlugin({
-                    title: pageTitles[index],
                     template: handleFileUrl(`./src/html/${pageName}.html`),
                     filename: handleFileUrl(`./dist/${pageName}.html`),
                     chunks: ['common', pageName],
@@ -111,17 +109,17 @@ module.exports = (env, argv) => ({
                 ]
             },
             {
-                test: /\.(png|svg|jpg|gif|jpeg|ico|woff|woff2|eot|ttf|otf)$/,
-                use: [
-                    {
-                        loader: 'url-loader', // 根据图片大小，把图片优化成base64
-                        options: {
-                            name: '[name].[ext]',
-                            outputPath: './images',
-                            limit: 0,
-                        }
-                    }]
-            }]
+                test:/\.(jpg|png|gif)$/,
+                type: 'asset/resource',
+                generator:{ 
+                  filename:'images/[name].[hash:8][ext]',
+                },
+              },
+              {
+                test:/\.html$/,
+                loader:'html-loader',
+              },
+        ]
     },
     plugins: [
         new CleanWebpackPlugin(), // 清理之前的打包文件,
