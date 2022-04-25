@@ -5,11 +5,11 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin"); // 把css文件
 const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin'); // 压缩css
 const { CleanWebpackPlugin } = require('clean-webpack-plugin'); //清除之前打包的文件
 const glob = require('glob');
-console.log('isPro===', process.env.NODE_ENV)
 const handleFileUrl = (src) => {
     return path.join(__dirname, src)
 }
 
+const pageTitles = ['首页', '首页1', '首页2',]
 const setMPA = () => {
     const entry = {};
     const htmlWebpackPlugins = [];
@@ -25,7 +25,7 @@ const setMPA = () => {
             // 循环动态打包文件
             htmlWebpackPlugins.push(
                 new htmlInjectPlugin({
-                    title: pageName,
+                    title: pageTitles[index],
                     template: handleFileUrl(`./src/html/${pageName}.html`),
                     filename: handleFileUrl(`./dist/${pageName}.html`),
                     chunks: ['common', pageName],
@@ -58,12 +58,13 @@ module.exports = (env, argv) => ({
         ...entry
     },
     output: {
-        path: path.join(__dirname, 'dist/js'),
+        path: path.join(__dirname, 'dist'),
         // 入口文件和其依赖模块
-        filename: '[name].[contenthash:8].js',
+        filename: './js/[name].[contenthash:8].js',
         // 异步引入的文件和其依赖模块
-        chunkFilename: '[name].[contenthash:8].js',
+        chunkFilename: './js/[name].[contenthash:8].js',
         clean: true,
+        publicPath: ''
         // cdn
         // publicPath: 'https://cdn.com'
     },
@@ -77,7 +78,8 @@ module.exports = (env, argv) => ({
             html_template: path.resolve(__dirname, 'src/html_template'),
             json: path.resolve(__dirname, 'src/json'),
             txt: path.resolve(__dirname, 'src/txt'),
-            js: path.resolve(__dirname, 'src/js')
+            js: path.resolve(__dirname, 'src/js'),
+            images: path.resolve(__dirname, 'src/images')
         },
     },
     // 排除不需要的监听，节省性能
@@ -85,46 +87,55 @@ module.exports = (env, argv) => ({
         ignored: /node_modules/,
     },
     module: {
-        rules: [{
-            test: /\.txt$/, use: 'raw-loader'
-        }, {
-            test: /\.css$/, use: [
-                {
-                    loader: argv.mode !== 'production' ? 'style-loader' : MiniCssExtractPlugin.loader,
-                }, {
-                    loader: 'css-loader'
-                }, {
-                    loader: 'postcss-loader'
+        rules: [
+            {
+                test: /\.txt$/, use: 'raw-loader'
+            },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader'
                 }
-            ]
-        }, {
-            test: /\.(png|jpg|gif)$/i,
-            loader: 'url-loader',
-            options: {
-                // 图片大小小于8kb，就会被base64处理，优点：减少请求数量（减轻服务器压力），缺点：图片体积会更大（文件请求速度更慢）
-                // base64在客户端本地解码所以会减少服务器压力，如果图片过大还采用base64编码会导致cpu调用率上升，网页加载时变卡
-                limit: 8000,
-                // 给图片重命名，[hash:10]：取图片的hash的前10位，[ext]：取文件原来扩展名
-                name: '[hash:10].[ext]',
-                esModule: false,
-                outputPath: '../images',
-            }
-        }]
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    {
+                        loader: argv.mode !== 'production' ? 'style-loader' : MiniCssExtractPlugin.loader,
+                    }, {
+                        loader: 'css-loader'
+                    }, {
+                        loader: 'postcss-loader'
+                    }
+                ]
+            },
+            {
+                test: /\.(png|svg|jpg|gif|jpeg|ico|woff|woff2|eot|ttf|otf)$/,
+                use: [
+                    {
+                        loader: 'url-loader', // 根据图片大小，把图片优化成base64
+                        options: {
+                            name: '[name].[ext]',
+                            outputPath: './images',
+                            limit: 0,
+                        }
+                    }]
+            }]
     },
     plugins: [
         new CleanWebpackPlugin(), // 清理之前的打包文件,
         ...htmlWebpackPlugins,
         new MiniCssExtractPlugin({
             // 分离css
-            filename: "../css/[name].[chunkhash:8].css",
-            chunkFilename: "../css/[name].[chunkhash:8].css",
+            filename: "./css/[name].[chunkhash:8].css",
+            chunkFilename: "./css/[name].[chunkhash:8].css",
         }),
-        new OptimizeCssAssetsWebpackPlugin()
+        new OptimizeCssAssetsWebpackPlugin() // 压缩css
     ],
     devServer: {
         compress: true,
         port: 9999,
-        open: true,
-        static: './src'
+        open: true
     }
 })
