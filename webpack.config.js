@@ -22,9 +22,10 @@ module.exports = {
     output: {
         path: path.join(__dirname, 'dist'),
         // 入口文件和其依赖模块
-        filename: '[name].js',
+        filename: '[name].[contenthash].js',
         // 异步引入的文件和其依赖模块
-        chunkFilename: '[name].js'
+        chunkFilename: '[name].[contenthash].js',
+        clean: true,
         // cdn
         // publicPath: 'https://cdn.com'
     },
@@ -82,7 +83,10 @@ module.exports = {
             filename: 'index1.html',
             inject: "body",
             template: handleFileUrl('./src/html/index1.html'),
-            chunks: ['common', 'index1']
+            chunks: ['common', 'index1'],
+            output: {
+                
+            }
         }),
         new htmlInjectPlugin({
             filename: 'index2.html',
@@ -95,7 +99,5 @@ module.exports = {
         compress: true,
         port: 9999,
         open: true,
-        // 设置服务启动的目录
-        static: './src'
     }
 }

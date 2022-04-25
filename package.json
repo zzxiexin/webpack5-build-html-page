@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "build:dev": "webpack --mode development",
-    "build:pro": "webpack --mode production",
+    "build": "webpack --mode production",
     "dev": "webpack-dev-server"
   },
   "dependencies": {
