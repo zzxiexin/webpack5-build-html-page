@@ -1,23 +1,56 @@
 const path = require('path');
 const webpack = require('webpack');
 const htmlInjectPlugin = require('html-webpack-plugin'); // html注入js插件
+const glob = require('glob');
 const handleFileUrl = (src) => {
-    return path.resolve(__dirname, src)
+    return path.join(__dirname, src)
 }
 
+const setMPA = () => {
+    const entry = {};
+    const htmlWebpackPlugins = [];
+    const entryFiles = glob.sync(handleFileUrl('./src/js/*.js'));
+    console.log('entryFiles==', entryFiles);
+    Object.keys(entryFiles)
+        .map((index) => {
+            const entryFile = entryFiles[index]; // 获取入口文件的路径
+            const match = entryFile.match(/src\/js\/(.*)\.js/);
+            const pageName = match && match[1]; // 获取入口文件的名称
+
+            entry[pageName] = entryFile;
+            // 循环动态打包文件
+            htmlWebpackPlugins.push(
+                new htmlInjectPlugin({
+                    template: handleFileUrl(`./src/html/${pageName}.html`),
+                    filename: handleFileUrl(`./dist/${pageName}.html`),
+                    chunks: ['common', pageName],
+                    inject: "body",
+                    minify: {
+                        html5: true,
+                        collapseWhitespace: true,
+                        preserveLineBreaks: false,
+                        minifyCSS: true,
+                        minifyJS: true,
+                        removeComments: false
+                    }
+                })
+            );
+        });
+    console.log('entry===', entry)
+    console.log('htmlWebpackPlugins===', htmlWebpackPlugins)
+
+    return {
+        entry,
+        htmlWebpackPlugins
+    }
+}
+const { entry, htmlWebpackPlugins } = setMPA();
 module.exports = {
     mode: 'development',
     entry: {
         // 把无需修改的文件打包到一个文件中，优化每次打包的速度，可以让文件更好的缓存起来
         common: 'common/index.js',
-        index1: {
-            dependOn: 'common',
-            import: './src/js/index1.js',
-        },
-        index2: {
-            dependOn: 'common',
-            import: './src/js/index2.js',
-        }
+        ...entry
     },
     output: {
         path: path.join(__dirname, 'dist'),
@@ -71,33 +104,10 @@ module.exports = {
             }
         }]
     },
-    plugins: [
-        new webpack.ProgressPlugin(),
-        new htmlInjectPlugin({
-            filename: 'index.html',
-            inject: "body",
-            template: handleFileUrl('./src/html/index.html'),
-            chunks: ['common']
-        }),
-        new htmlInjectPlugin({
-            filename: 'index1.html',
-            inject: "body",
-            template: handleFileUrl('./src/html/index1.html'),
-            chunks: ['common', 'index1'],
-            output: {
-                
-            }
-        }),
-        new htmlInjectPlugin({
-            filename: 'index2.html',
-            inject: "body",
-            template: handleFileUrl('./src/html/index2.html'),
-            chunks: ['common', 'index2']
-        })
-    ],
+    plugins: htmlWebpackPlugins,
     devServer: {
         compress: true,
         port: 9999,
-        open: true,
+        open: true
     }
 }
