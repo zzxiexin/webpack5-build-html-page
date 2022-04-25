@@ -1,7 +1,11 @@
 const path = require('path');
 const webpack = require('webpack');
 const htmlInjectPlugin = require('html-webpack-plugin'); // html注入js插件
+const MiniCssExtractPlugin = require("mini-css-extract-plugin"); // 把css文件单独分离出来
+const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin'); // 压缩css
+const { CleanWebpackPlugin } = require('clean-webpack-plugin'); //清除之前打包的文件
 const glob = require('glob');
+console.log('isPro===', process.env.NODE_ENV)
 const handleFileUrl = (src) => {
     return path.join(__dirname, src)
 }
@@ -21,6 +25,7 @@ const setMPA = () => {
             // 循环动态打包文件
             htmlWebpackPlugins.push(
                 new htmlInjectPlugin({
+                    title: pageName,
                     template: handleFileUrl(`./src/html/${pageName}.html`),
                     filename: handleFileUrl(`./dist/${pageName}.html`),
                     chunks: ['common', pageName],
@@ -45,7 +50,7 @@ const setMPA = () => {
     }
 }
 const { entry, htmlWebpackPlugins } = setMPA();
-module.exports = {
+module.exports = (env, argv) => ({
     mode: 'development',
     entry: {
         // 把无需修改的文件打包到一个文件中，优化每次打包的速度，可以让文件更好的缓存起来
@@ -53,11 +58,11 @@ module.exports = {
         ...entry
     },
     output: {
-        path: path.join(__dirname, 'dist'),
+        path: path.join(__dirname, 'dist/js'),
         // 入口文件和其依赖模块
-        filename: '[name].[contenthash].js',
+        filename: '[name].[contenthash:8].js',
         // 异步引入的文件和其依赖模块
-        chunkFilename: '[name].[contenthash].js',
+        chunkFilename: '[name].[contenthash:8].js',
         clean: true,
         // cdn
         // publicPath: 'https://cdn.com'
@@ -85,9 +90,11 @@ module.exports = {
         }, {
             test: /\.css$/, use: [
                 {
-                    loader: 'style-loader'
+                    loader: argv.mode !== 'production' ? 'style-loader' : MiniCssExtractPlugin.loader,
                 }, {
                     loader: 'css-loader'
+                }, {
+                    loader: 'postcss-loader'
                 }
             ]
         }, {
@@ -100,14 +107,24 @@ module.exports = {
                 // 给图片重命名，[hash:10]：取图片的hash的前10位，[ext]：取文件原来扩展名
                 name: '[hash:10].[ext]',
                 esModule: false,
-                outputPath: 'img',
+                outputPath: '../images',
             }
         }]
     },
-    plugins: htmlWebpackPlugins,
+    plugins: [
+        new CleanWebpackPlugin(), // 清理之前的打包文件,
+        ...htmlWebpackPlugins,
+        new MiniCssExtractPlugin({
+            // 分离css
+            filename: "../css/[name].[chunkhash:8].css",
+            chunkFilename: "../css/[name].[chunkhash:8].css",
+        }),
+        new OptimizeCssAssetsWebpackPlugin()
+    ],
     devServer: {
         compress: true,
         port: 9999,
-        open: true
+        open: true,
+        static: './src'
     }
-}
+})

@@ -9,11 +9,15 @@
     "dev": "webpack-dev-server"
   },
   "dependencies": {
+    "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^10.2.4",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",
     "glob": "7.1.6",
     "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.6.0",
+    "optimize-css-assets-webpack-plugin": "^6.0.1",
+    "postcss-loader": "^6.2.1",
     "raw-loader": "^4.0.2",
     "style-loader": "^3.3.1",
     "url-loader": "^4.1.1",
