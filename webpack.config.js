@@ -34,7 +34,7 @@ const setMPA = () => {
                         preserveLineBreaks: false,
                         minifyCSS: true,
                         minifyJS: true,
-                        removeComments: false
+                        removeComments: true
                     }
                 })
             );
