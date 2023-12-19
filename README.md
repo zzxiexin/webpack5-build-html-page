@@ -1,4 +1,4 @@
-### 学习笔记
+### 笔记
 1. webpack默认可以处理json和js文件，所以无需配置相关loader，除此之外，需要配置对应解析相关文件的loader
 2. webpack引入相关模块时，json和js文件不需要写后缀名，其他则需要正常写
 3. 以entry入口文件为准，每个文件都是一个bundle

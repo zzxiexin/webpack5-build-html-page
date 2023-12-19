@@ -3,6 +3,6 @@ function a() {
 }
 a()
 $('body').css({
-    backgroundColor: 'blue'
+    backgroundColor: '#eee'
 })
 

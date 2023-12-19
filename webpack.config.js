@@ -5,6 +5,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin"); // 把css文件
 const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin'); // 压缩css
 const { CleanWebpackPlugin } = require('clean-webpack-plugin'); //清除之前打包的文件
 const glob = require('glob');
+console.log('__dirname', __dirname)
 const handleFileUrl = (src) => {
     return path.join(__dirname, src)
 }
@@ -13,7 +14,6 @@ const setMPA = () => {
     const entry = {};
     const htmlWebpackPlugins = [];
     const entryFiles = glob.sync(handleFileUrl('./src/js/*.js'));
-    console.log('entryFiles==', entryFiles);
     Object.keys(entryFiles)
         .map((index) => {
             const entryFile = entryFiles[index]; // 获取入口文件的路径
